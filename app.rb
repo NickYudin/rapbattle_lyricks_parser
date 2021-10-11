@@ -28,9 +28,29 @@ class Parser
       battle = link.click
       title = battle.search('h2').text.split(battle.search('h2 a').text)
       lyric = battle.search('.lyrics').text
-      @lyrics.push(title: title.last.strip.delete_suffix(' (Title Match) Lyrics'),
+      @lyrics.push(title: title.last.strip.delete_suffix(' (Title Match) Lyrics') ,
                   link: link.href,
                   text: lyric)
     end
+    lyrics.each do |battle|
+      @battlers = battle[:title].split(' vs. ') 
+      battle[:first_battler] = @battlers[0]
+      battle[:second_battler] = @battlers[1]
+      battle[:first_text] = ''
+      battle[:second_text] = ''
+
+      rounds = battle[:text].strip.split('[Round ')
+      rounds.delete_at(0)
+      rounds.each do |round|
+        @q = round.split(']')
+
+        if @q[0].include?("#{battle[:first_battler]}")
+          battle[:first_text] += "#{@q[1]}"
+        elsif @q[0].include?("#{battle[:second_battler]}")
+          battle[:second_text] += "#{@q[1]}"
+        end
+      end
+    end
   end
 end
+binding pry
