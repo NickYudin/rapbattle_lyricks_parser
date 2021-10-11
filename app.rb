@@ -2,27 +2,35 @@ require 'rubygems'
 require 'mechanize'
 require 'pry'
 
-attr_reader :lyrics
+class Parser
 
-agent = Mechanize.new
-page = agent.get(
-                  'https://genius.com/albums/King-of-the-dot/Kotd-title-matches'
-                )
-links = []
- page.links.each do |link|
-   if link.text.include?('(Title Match)')
-     arr << link
-   end
+  START_PAGE  = 'https://genius.com/albums/King-of-the-dot/Kotd-title-matches'.freeze
+
+  attr_reader :lyrics
+
+  attr_reader :lyrics
+  def initialize
+    @agent = Mechanize.new
+    @page = @agent.get(START_PAGE)
+    get_data
+  end
+ 
+  def get_data
+    @links = []
+    @lyrics = []
+
+    @page.links.each do |link|
+       if link.text.include?('(Title Match)')
+         @links << link
+       end
+    end
+    @links.each do |link|
+      battle = link.click
+      title = battle.search('h2').text.split(battle.search('h2 a').text)
+      lyric = battle.search('.lyrics').text
+      @lyrics.push(title: title.last.strip,
+                  link: link,
+                  text: lyric)
+    end
+  end
 end
-
-@lyrics = []
-links.each do |link|
-  battle = link.click
-  title = battle.search('h2').text.split(battle.search('h2 a').text)
-  lyric = battle.search('.lyrics').text
-  @lyrics.push(title: title.last.strip,
-              lyrics: lyric)
-
-
-end
-
