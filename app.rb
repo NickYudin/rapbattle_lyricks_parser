@@ -29,7 +29,7 @@ class Parser
       title = battle.search('h2').text.split(battle.search('h2 a').text)
       lyric = battle.search('.lyrics').text
       @lyrics.push(title: title.last.strip,
-                  link: link,
+                  link: link.href,
                   text: lyric)
     end
   end
