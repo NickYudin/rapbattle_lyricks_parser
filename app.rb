@@ -26,9 +26,9 @@ class Parser
     end
     @links.each do |link|
       battle = link.click
-      title = battle.search('h2').text.split(battle.search('h2 a').text)
+      title = battle.search('h2.text_label').text
       lyric = battle.search('.lyrics').text
-      @lyrics.push(title: title.last.strip.delete_suffix(' (Title Match) Lyrics') ,
+      @lyrics.push(title: title.delete_suffix(' (Title Match) Lyrics') ,
                   link: link.href,
                   text: lyric)
     end
