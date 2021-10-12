@@ -45,9 +45,9 @@ class Parser
         @q = round.split(']')
 
         if @q[0].include?("#{battle[:first_battler]}")
-          battle[:first_text] += "#{@q[1]}"
-        elsif @q[0].include?("#{battle[:second_battler]}")
-          battle[:second_text] += "#{@q[1]}"
+          battle[:first_text] << "#{@q[1]}"
+        else
+          battle[:second_text] << "#{@q[1]}"
         end
       end
     end
