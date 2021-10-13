@@ -11,15 +11,15 @@ class Parser
   end
  
   def call
-    battles_data
+    puts battles_data
   end
 
   def links
-    @page.links.filter_map { |link| link if link.text.include?('(Title Match)') } 
+    @links ||= @page.links.filter_map { |link| link if link.text.include?('(Title Match)') }
   end
 
   def battles_data
-    links.map { |link| Battle.new(link)} 
+    links.map { |link| Battle.new(link).call} 
   end  
 
 end
@@ -32,15 +32,12 @@ class Battle
   end
 
   def call
-    parse_battle(@battle)
-  end
-
-  def parse_battle (link)
-    parse_title(link)
+    parse_title(@battle)
     parse_url(@link)
-    parse_battlers(link)
-    parse_texts(link)
+    parse_battlers(@battle)
+    parse_texts(@battle)
     make_hash
+    return @data
   end
 
   def make_hash
@@ -78,14 +75,15 @@ class Battle
   end
 
   def compilation (round_title, round_text)
-      if round_title.include?("#{@first_battler}") ? add_to_first(round text) : add_to_second(round text)
+      if round_title.include?("#{@first_battler}") ? add_to_first(round_text) : add_to_second(round_text)
+      end
   end  
 
-  def add_to_first (round text)
+  def add_to_first (round_text)
     @first_text << "#{round_text}"
   end
 
-  def add_to_second (round text)
+  def add_to_second (round_text)
     @second_text << "#{round_text}"
   end
 
@@ -96,3 +94,4 @@ class Battle
   end
   
 end
+binding pry
