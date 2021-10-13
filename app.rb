@@ -6,51 +6,105 @@ class Parser
 
   START_PAGE  = 'https://genius.com/albums/King-of-the-dot/Kotd-title-matches'.freeze
 
-  attr_reader :lyrics
-
-  attr_reader :lyrics
   def initialize
     @agent = Mechanize.new
     @page = @agent.get(START_PAGE)
     get_data
   end
  
+
   def get_data
-    @links = []
-    @lyrics = []
+    @data = []
+    get_links
+    parse_battles
+    puts @data
+  end
 
-    @page.links.each do |link|
-       if link.text.include?('(Title Match)')
-         @links << link
-       end
-    end
-    @links.each do |link|
-      battle = link.click
-      title = battle.search('h2.text_label').text
-      lyric = battle.search('.lyrics').text
-      @lyrics.push(title: title.delete_suffix(' (Title Match) Lyrics') ,
-                  link: link.href,
-                  text: lyric)
-    end
-    lyrics.each do |battle|
-      @battlers = battle[:title].split(' vs. ') 
-      battle[:first_battler] = @battlers[0]
-      battle[:second_battler] = @battlers[1]
-      battle[:first_text] = ''
-      battle[:second_text] = ''
-
-      rounds = battle[:text].strip.split('[Round ')
-      rounds.delete_at(0)
-      rounds.each do |round|
-        @q = round.split(']')
-
-        if @q[0].include?("#{battle[:first_battler]}")
-          battle[:first_text] << "#{@q[1]}"
-        else
-          battle[:second_text] << "#{@q[1]}"
-        end
-      end
+  def get_links
+    @links = @page.links.filter_map do |link|
+      link if link.text.include?('(Title Match)')
     end
   end
+
+  def parse_battles
+    @links.each do |link|
+     
+      some = Battle.new (link)
+      @data << some 
+    end 
+  end  
 end
-binding pry
+
+class Battle 
+
+  def initialize (link)
+    parse_url(link)
+    battle = link.click
+    parse_battle(battle)
+    make_hash
+    return @data
+  end
+
+  def make_hash
+    
+    @data = { 
+              title: @title,
+              link: @url,
+              first_battler: @first_battler,
+              second_battler: @second_battler,
+              first_text: @first_text,
+              second_text: @second_text
+              }
+  end
+
+  def parse_url (link)
+    @url = link.href
+  end    
+
+  def parse_battle (link)
+    parse_title(link)
+    parse_1st_battler(link)
+    parse_2nd_battler(link)
+    parse_texts(link)
+  end
+
+  def parse_title (link)
+      @title = link.search('h2.text_label').text.delete_suffix(' (Title Match) Lyrics')
+  end
+
+  def parse_texts (link)
+    @first_text = ''
+    @second_text = ''
+    lyric = link.search('.lyrics').text.strip.split('[Round ')
+    lyric.delete_at(0)
+    compilate_battlers_text(lyric)
+
+  end
+
+  def compilate_battlers_text (rounds)
+    rounds.each do |round|
+      arr = round.split(']')
+      round_title = arr[0]
+      round_text = arr[1]
+      compilation(round_title, round_text)
+    end    
+  end
+
+  def compilation (round_title, round_text)
+      if round_title.include?("#{@first_battler}")
+        @first_text << "#{round_text}"
+      else
+        @second_text << "#{round_text}"
+      end
+  end  
+
+  def parse_1st_battler (link)
+    battlers = @title.split(' vs. ') 
+    @first_battler = battlers[0]
+  end
+    
+  def parse_2nd_battler (link)
+    battlers = @title.split(' vs. ') 
+    @second_battler = battlers[1]
+  end
+end
