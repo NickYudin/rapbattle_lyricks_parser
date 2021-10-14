@@ -37,11 +37,11 @@ class Battle
     parse_battlers(@battle)
     parse_texts(@battle)
     make_hash
-    return @data
+    check
   end
 
   def make_hash
-    @data = { 
+    @hash = { 
               title: @title,
               link: @url,
               first_battler: @first_battler,
@@ -49,6 +49,10 @@ class Battle
               first_text: @first_text,
               second_text: @second_text
               }
+  end
+
+  def check 
+    @hash[@first_text] == ''? call : @hash
   end
 
   def parse_url (link)
